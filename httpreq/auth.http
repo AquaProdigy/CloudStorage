@@ -1,0 +1,12 @@
+### Post request to auth register
+@host = http://localhost:8080
+
+
+POST {{host}}/auth/sign-up
+Content-Type: application/json
+
+{
+  "username": "daniel",
+  "password": "daniel"
+}
+###
