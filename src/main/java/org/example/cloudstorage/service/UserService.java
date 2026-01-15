@@ -1,14 +1,13 @@
 package org.example.cloudstorage.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.cloudstorage.entity.User;
+import org.example.cloudstorage.model.entity.User;
 import org.example.cloudstorage.model.dto.UserDTO;
 import org.example.cloudstorage.model.exception.UsernameExistsException;
-import org.example.cloudstorage.model.request.UserRegisterRequest;
+import org.example.cloudstorage.model.request.AuthUserRequest;
 import org.example.cloudstorage.repository.UserRepository;
 import org.jspecify.annotations.NonNull;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,21 +20,31 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserDTO register(UserRegisterRequest user) {
+
+    public UserDTO login(AuthUserRequest authUserRequest) {
+        User user = userRepository
+                .findByUsername(authUserRequest.getUsername()).orElseThrow(() ->
+                        new BadCredentialsException("Username not correct"));
+
+        if (!passwordEncoder.matches(authUserRequest.getPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Password not correct");
+        }
+
+        return new UserDTO(authUserRequest.getUsername());
+
+
+    }
+
+
+    public UserDTO register(AuthUserRequest user) {
         if (userRepository.existsByUsername(user.getUsername())) {
-            throw new UsernameExistsException(user.getUsername());
+            throw new UsernameExistsException("Username already exists: %s".formatted(user.getUsername()));
         }
 
         User userEntity = new User();
         userEntity.setUsername(user.getUsername());
         userEntity.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(userEntity);
-
-        var userDetails = loadUserByUsername(user.getUsername());
-
-        var authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-        SecurityContextHolder.getContext().setAuthentication(authToken);
 
         return new UserDTO(user.getUsername());
     }

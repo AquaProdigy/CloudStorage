@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserRegisterRequest {
+public class AuthUserRequest {
 
     @NotBlank(message = "Username not be empty")
     @Size(min = 3, max = 25, message = "Min 3 max 25 length")

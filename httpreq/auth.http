@@ -2,11 +2,28 @@
 @host = http://localhost:8080
 
 
-POST {{host}}/auth/sign-up
+POST {{host}}/api/auth/sign-up
+Content-Type: application/json
+
+{
+  "username": "daniel",
+  "password": "12"
+}
+### POST request sign in
+POST {{host}}/api/auth/sign-in
 Content-Type: application/json
 
 {
   "username": "daniel",
   "password": "daniel"
 }
-###
+
+### POST logout
+POST {{host}}/api/auth/sign-out
+Content-Type: application/json
+
+
+### GET user/me
+GET {{host}}/api/user/me
+Content-Type: application/json
+

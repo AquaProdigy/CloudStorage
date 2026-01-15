@@ -1,11 +1,8 @@
 package org.example.cloudstorage.security;
 
-import org.example.cloudstorage.entity.User;
-import org.example.cloudstorage.repository.UserRepository;
+import org.example.cloudstorage.model.entity.User;
 import org.jspecify.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;

@@ -1,6 +1,6 @@
 package org.example.cloudstorage.repository;
 
-import org.example.cloudstorage.entity.User;
+import org.example.cloudstorage.model.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
