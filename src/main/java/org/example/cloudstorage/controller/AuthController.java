@@ -33,17 +33,11 @@ public class AuthController {
     private final SecurityContextRepository securityContextRepository;
 
 
-    @PostMapping("${auth.register}")
-    public ResponseEntity<UserDTO> register(
-            @RequestBody @Valid AuthUserRequest userRegisterRequest,
+    private void authenticateUser(
+            AuthUserRequest userRegisterRequest,
             HttpServletRequest request,
             HttpServletResponse response
-
     ) {
-        log.info("Registering request for username: {}", userRegisterRequest.getUsername());
-
-        userService.register(userRegisterRequest);
-
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                 userRegisterRequest.getUsername(), userRegisterRequest.getPassword()
         );
@@ -54,9 +48,22 @@ public class AuthController {
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
         securityContextRepository.saveContext(context, request, response);
+    }
 
 
-        return new ResponseEntity<>(new UserDTO(userRegisterRequest.getUsername()), HttpStatus.CREATED);
+    @PostMapping("${auth.register}")
+    public ResponseEntity<UserDTO> register(
+            @RequestBody @Valid AuthUserRequest userRegisterRequest,
+            HttpServletRequest request,
+            HttpServletResponse response
+
+    ) {
+        log.info("Registering request for username: {}", userRegisterRequest.getUsername());
+
+        UserDTO userDTO = userService.register(userRegisterRequest);
+        authenticateUser(userRegisterRequest, request, response);
+
+        return new ResponseEntity<>(userDTO, HttpStatus.CREATED);
     }
 
 
@@ -69,17 +76,7 @@ public class AuthController {
         log.info("Login request for username: {}", authUserRequest.getUsername());
 
         UserDTO userDTO = userService.login(authUserRequest);
-
-
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                authUserRequest.getUsername(), authUserRequest.getPassword());
-
-        Authentication authentication = authenticationManager.authenticate(token);
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
-        securityContextRepository.saveContext(context, request, response);
-
+        authenticateUser(authUserRequest, request, response);
         return ResponseEntity.status(HttpStatus.OK).body(userDTO);
 
     }

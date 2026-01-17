@@ -1,5 +1,7 @@
 package org.example.cloudstorage.service;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.example.cloudstorage.model.entity.User;
 import org.example.cloudstorage.model.dto.UserDTO;
@@ -21,7 +23,9 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
 
 
-    public UserDTO login(AuthUserRequest authUserRequest) {
+    public UserDTO login(
+            AuthUserRequest authUserRequest
+    ) {
         User user = userRepository
                 .findByUsername(authUserRequest.getUsername()).orElseThrow(() ->
                         new BadCredentialsException("Username not correct"));
@@ -36,7 +40,9 @@ public class UserService implements UserDetailsService {
     }
 
 
-    public UserDTO register(AuthUserRequest user) {
+    public UserDTO register(
+            AuthUserRequest user
+    ) {
         if (userRepository.existsByUsername(user.getUsername())) {
             throw new UsernameExistsException("Username already exists: %s".formatted(user.getUsername()));
         }
@@ -45,6 +51,7 @@ public class UserService implements UserDetailsService {
         userEntity.setUsername(user.getUsername());
         userEntity.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(userEntity);
+
 
         return new UserDTO(user.getUsername());
     }
