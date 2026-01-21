@@ -24,21 +24,26 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(CsrfConfigurer::disable)
-                .formLogin(FormLoginConfigurer::disable)
-                .authorizeHttpRequests(auth ->
-                        auth
-                                .requestMatchers("/api/auth/sign-up", "/api/auth/sign-in").permitAll()
-                                .anyRequest().authenticated())
-                                .exceptionHandling(exception -> exception
-                                        .authenticationEntryPoint((request, response, authException) -> {
-                                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                                            response.setContentType("application/json");
-                                            response.setCharacterEncoding("UTF-8");
-                                            response.getWriter().write(new ErrorResponse("User unauthorized").toString());
-                                        })
-                                );
+//        http
+//                .csrf(CsrfConfigurer::disable)
+//                .formLogin(FormLoginConfigurer::disable)
+//                .authorizeHttpRequests(auth ->
+//                        auth
+//                                .requestMatchers("/api/auth/sign-up", "/api/auth/sign-in").permitAll()
+//                                .anyRequest().authenticated())
+//                                .exceptionHandling(exception -> exception
+//                                        .authenticationEntryPoint((request, response, authException) -> {
+//                                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//                                            response.setContentType("application/json");
+//                                            response.setCharacterEncoding("UTF-8");
+//                                            response.getWriter().write(new ErrorResponse("User unauthorized").toString());
+//                                        })
+//                                );
+//        return http.build();
+        http.csrf(CsrfConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest()
+                        .permitAll());
         return http.build();
     }
 

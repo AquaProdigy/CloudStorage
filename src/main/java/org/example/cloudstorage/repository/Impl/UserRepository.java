@@ -1,4 +1,4 @@
-package org.example.cloudstorage.repository;
+package org.example.cloudstorage.repository.Impl;
 
 import org.example.cloudstorage.model.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;

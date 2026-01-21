@@ -1,13 +1,11 @@
 package org.example.cloudstorage.service;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.example.cloudstorage.model.entity.User;
 import org.example.cloudstorage.model.dto.UserDTO;
 import org.example.cloudstorage.model.exception.UsernameExistsException;
 import org.example.cloudstorage.model.request.AuthUserRequest;
-import org.example.cloudstorage.repository.UserRepository;
+import org.example.cloudstorage.repository.Impl.UserRepository;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;

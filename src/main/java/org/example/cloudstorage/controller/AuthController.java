@@ -19,6 +19,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 
@@ -83,16 +84,11 @@ public class AuthController {
 
     @PostMapping("${auth.logout}")
     public ResponseEntity<Void> logout(
-            HttpServletRequest request
+            HttpServletRequest request,
+            HttpServletResponse response
     ) {
 
-        SecurityContextHolder.clearContext();
-
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
-
+        new SecurityContextLogoutHandler().logout(request, response, null);
         return ResponseEntity.noContent().build();
     }
 

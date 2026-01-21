@@ -1,6 +1,8 @@
 package org.example.cloudstorage.advice;
 
 import lombok.extern.slf4j.Slf4j;
+import org.example.cloudstorage.model.exception.InvalidPathResourceException;
+import org.example.cloudstorage.model.exception.ResourceNotFoundException;
 import org.example.cloudstorage.model.exception.UnauthorizedException;
 import org.example.cloudstorage.model.exception.UsernameExistsException;
 import org.springframework.http.HttpStatus;
@@ -52,5 +54,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<Map<String, String>> handleUnauthorizedException(UnauthorizedException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidPathResourceException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidPathResourceException(InvalidPathResourceException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", ex.getMessage()));
     }
 }

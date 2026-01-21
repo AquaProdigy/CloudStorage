@@ -7,7 +7,7 @@ Content-Type: application/json
 
 {
   "username": "daniel",
-  "password": "12"
+  "password": "daniel"
 }
 ### POST request sign in
 POST {{host}}/api/auth/sign-in
@@ -25,5 +25,15 @@ Content-Type: application/json
 
 ### GET user/me
 GET {{host}}/api/user/me
+Content-Type: application/json
+
+
+### GET resource?path=
+GET {{host}}/resource?path=sosal/1
+Content-Type: application/json
+
+
+### DELETE resource?path=
+DELETE {{host}}/resource?path=sosal/
 Content-Type: application/json
 
