@@ -37,10 +37,10 @@ public class MinioTest implements CommandLineRunner {
 //            System.out.println(item.lastModified() + "\t" + item.size() + "\t" + item.objectName());
 //        }
 
-        minioClient.putObject(PutObjectArgs.builder()
-                        .bucket("user-files")
-                .object("sex/")
-                        .stream(new ByteArrayInputStream(new byte[]{}), 0, -1)
-                .build());
+//        minioClient.putObject(PutObjectArgs.builder()
+//                        .bucket("user-files")
+//                .object("sex/")
+//                        .stream(new ByteArrayInputStream(new byte[]{}), 0, -1)
+//                .build());
     }
 }

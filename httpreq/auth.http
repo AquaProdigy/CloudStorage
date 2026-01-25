@@ -34,6 +34,19 @@ Content-Type: application/json
 
 
 ### DELETE resource?path=
-DELETE {{host}}/resource?path=sosal/
+DELETE {{host}}/resource?path=xui/sosat/
 Content-Type: application/json
 
+
+### POST directory?path=
+POST {{host}}/directory?path=xui/sosal/
+Content-Type: application/json
+
+
+### GET directory?path=
+GET {{host}}/directory?path=xui.txtasd/
+Content-Type: application/json
+
+### GET /resource/download
+GET {{host}}/resource/download?path=xui/
+Content-Type: application/json

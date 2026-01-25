@@ -1,11 +1,14 @@
 package org.example.cloudstorage.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.cloudstorage.model.entity.User;
 import org.example.cloudstorage.model.dto.UserDTO;
 import org.example.cloudstorage.model.exception.UsernameExistsException;
 import org.example.cloudstorage.model.request.AuthUserRequest;
 import org.example.cloudstorage.repository.Impl.UserRepository;
+import org.example.cloudstorage.repository.ResourceRepository;
+import org.example.cloudstorage.util.PathUtil;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Service;
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ResourceService resourceService;
 
 
     public UserDTO login(
@@ -37,7 +41,7 @@ public class UserService implements UserDetailsService {
 
     }
 
-
+    @Transactional
     public UserDTO register(
             AuthUserRequest user
     ) {
@@ -50,9 +54,11 @@ public class UserService implements UserDetailsService {
         userEntity.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(userEntity);
 
+        resourceService.createRootDirectory(userEntity.getId());
 
         return new UserDTO(user.getUsername());
     }
+
 
     @Override
     public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
