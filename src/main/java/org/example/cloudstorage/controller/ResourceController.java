@@ -81,4 +81,20 @@ public class ResourceController {
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(stream);
     }
+
+
+    @GetMapping("/resource/move")
+    public ResponseEntity<ResourceDTO> moveOrRenameResource(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(name = "from") String from,
+            @RequestParam(name = "to") String to
+    ) {
+        ResourceDTO resourceDTO = resourceService.moveOrRename(
+                userDetails.getUser().getId(),
+                from,
+                to
+        );
+
+        return ResponseEntity.ok(resourceDTO);
+    }
 }

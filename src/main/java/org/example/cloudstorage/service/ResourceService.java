@@ -151,4 +151,27 @@ public class ResourceService {
 
     }
 
+    private ResourceDTO renameResource(String from, String to, Long userId) {
+        resourceRepository.copyObject(from, to);
+        resourceRepository.deleteFile(from);
+        return toResourceDTO(to, userId);
+    }
+
+    private void moveResource(String from, String to, Long userId) {
+
+    }
+
+    public ResourceDTO moveOrRename(Long userId, String from, String to) {
+        String fullUserFromPath = PathUtil.buildUserFullPath(userId, from);
+        String fullUserToPath = PathUtil.buildUserFullPath(userId, to);
+
+        resourceRepository.assertExists(fullUserFromPath);
+        resourceRepository.assertNotExists(fullUserToPath);
+
+        if (PathUtil.isRenameAction(from, to)) {
+            return renameResource(fullUserFromPath, fullUserToPath, userId);
+        }
+
+        return toResourceDTO(fullUserToPath, userId);
+    }
 }

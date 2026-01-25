@@ -50,3 +50,8 @@ Content-Type: application/json
 ### GET /resource/download
 GET {{host}}/resource/download?path=xui/
 Content-Type: application/json
+
+
+### GET /resource/move
+GET {{host}}/resource/move?from=xui/&to=1234/
+Content-Type: application/json

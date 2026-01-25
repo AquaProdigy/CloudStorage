@@ -17,5 +17,6 @@ public interface ResourceRepository {
     void createDirectory(String path) throws FileStorageException;
     List<String> getFilesFromDirectory(String path, Boolean recursive) throws FileStorageException;
     InputStream getObject(String path) throws FileStorageException;
+    void copyObject(String from, String to) throws FileStorageException;
 
 }

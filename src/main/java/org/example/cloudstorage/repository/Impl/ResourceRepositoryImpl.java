@@ -13,6 +13,7 @@ import org.example.cloudstorage.model.exception.ResourceNotFoundException;
 import org.example.cloudstorage.repository.ResourceRepository;
 import org.example.cloudstorage.util.PathUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -160,6 +161,24 @@ public class ResourceRepositoryImpl implements ResourceRepository {
                             .object(path)
                     .build());
         } catch (Exception ex) {
+            throw new FileStorageException(ApiErrors.UNEXPECTED_EXCEPTION.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public void copyObject(String from, String to) throws FileStorageException {
+        try {
+            minioClient.copyObject(CopyObjectArgs
+                    .builder()
+                    .bucket(bucketName)
+                    .object(to)
+                    .source(CopySource
+                            .builder()
+                            .bucket(bucketName)
+                            .object(from)
+                            .build())
+                    .build());
+        }catch (Exception ex) {
             throw new FileStorageException(ApiErrors.UNEXPECTED_EXCEPTION.getMessage(), ex);
         }
     }

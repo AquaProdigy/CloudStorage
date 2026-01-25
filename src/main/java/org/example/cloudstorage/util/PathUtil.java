@@ -21,6 +21,10 @@ public class PathUtil {
         return path.contains(ROOT_PATH.formatted(userId));
     }
 
+    public static boolean isRenameAction(String from, String to) {
+        return PathUtil.getParentPath(from).equals(PathUtil.getParentPath(to));
+    }
+
     public static String buildRootPath(Long userId) {
         return ROOT_PATH.formatted(userId);
     }
