@@ -35,6 +35,7 @@ public class PathUtil {
 
     public static String buildUserFullPath(Long userId, String path) {
         String normalized = validateAndNormalizePath(path);
+        if (isContainsRootPath(normalized, userId)) return normalized;
         return buildRootPath(userId) + normalized;
     }
 

@@ -2,9 +2,11 @@ package org.example.cloudstorage.service;
 
 
 import lombok.RequiredArgsConstructor;
+import org.example.cloudstorage.api.ApiErrors;
 import org.example.cloudstorage.model.dto.ResourceDTO;
 import org.example.cloudstorage.model.entity.User;
 import org.example.cloudstorage.model.enums.TypeResource;
+import org.example.cloudstorage.model.exception.FileStorageException;
 import org.example.cloudstorage.model.exception.InvalidPathResourceException;
 import org.example.cloudstorage.model.exception.ResourceAlreadyExistsException;
 import org.example.cloudstorage.model.exception.ResourceNotFoundException;
@@ -12,6 +14,7 @@ import org.example.cloudstorage.repository.Impl.UserRepository;
 import org.example.cloudstorage.repository.ResourceRepository;
 import org.example.cloudstorage.util.PathUtil;
 import org.springframework.core.io.Resource;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -73,6 +76,7 @@ public class ResourceService {
 
     public ResourceDTO createDirectory(Long userId, String path) {
         String fullUserPath = PathUtil.buildUserFullPath(userId, path);
+
         if (!PathUtil.isDirectory(fullUserPath)) {
             throw new InvalidPathResourceException("Invalid path");
         }
@@ -151,13 +155,24 @@ public class ResourceService {
 
     }
 
-    private ResourceDTO renameResource(String from, String to, Long userId) {
+    private ResourceDTO moveOrRenameFile(String from, String to, Long userId) {
         resourceRepository.copyObject(from, to);
         resourceRepository.deleteFile(from);
         return toResourceDTO(to, userId);
     }
 
-    private void moveResource(String from, String to, Long userId) {
+    private ResourceDTO moveResource(String from, String to, Long userId) {
+        List<String> files = resourceRepository.getFilesFromDirectory(from, true);
+
+        for (String file : files) {
+            if (PathUtil.isDirectory(file)) {
+                createDirectory(userId, to + PathUtil.getFileName(file) + "/");
+                continue;
+            }
+            resourceRepository.copyObject(file, file.replace(from, to));
+        }
+        deleteResource(userId, from);
+        return toResourceDTO(to, userId);
 
     }
 
@@ -168,10 +183,35 @@ public class ResourceService {
         resourceRepository.assertExists(fullUserFromPath);
         resourceRepository.assertNotExists(fullUserToPath);
 
-        if (PathUtil.isRenameAction(from, to)) {
-            return renameResource(fullUserFromPath, fullUserToPath, userId);
+        boolean isDirectoryFromPath = PathUtil.isDirectory(fullUserFromPath);
+
+        if (isDirectoryFromPath) {
+            createDirectory(userId, fullUserToPath);
+            return moveResource(fullUserFromPath, fullUserToPath, userId);
         }
 
-        return toResourceDTO(fullUserToPath, userId);
+        return moveOrRenameFile(fullUserFromPath, fullUserToPath, userId);
+
+//        if (PathUtil.isRenameAction(fullUserFromPath, fullUserToPath) ) {
+//            resourceRepository.assertNotExists(fullUserToPath);
+//
+//            if (isDirectoryFromPath) {
+//                createDirectory(userId, fullUserToPath);
+//                return moveResource(fullUserFromPath, fullUserToPath, userId);
+//            }
+//            return moveOrRenameFile(fullUserFromPath, fullUserToPath, userId);
+//        }
+//
+//        if (isDirectoryFromPath) {
+//            resourceRepository.assertNotExists(fullUserToPath);
+//            createDirectory(userId, fullUserToPath);
+//            return moveResource(fullUserFromPath, fullUserToPath, userId);
+//        }
+////
+//        resourceRepository.assertNotExists(fullUserToPath);
+//        return moveOrRenameFile(fullUserFromPath, fullUserToPath, userId);
+
+
+        // from=123/sosal/tuda.png  to=123/tuda.png
     }
 }

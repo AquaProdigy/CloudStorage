@@ -39,7 +39,7 @@ Content-Type: application/json
 
 
 ### POST directory?path=
-POST {{host}}/directory?path=xui/sosal/
+POST {{host}}/directory?path=1234/sosal1/
 Content-Type: application/json
 
 
@@ -53,5 +53,9 @@ Content-Type: application/json
 
 
 ### GET /resource/move
-GET {{host}}/resource/move?from=xui/&to=1234/
+GET {{host}}/resource/move?from=123/tuda.png&to=tuda.png
+Content-Type: application/json
+
+### GET /resource/move
+GET {{host}}/resource/move?from=1234/&to=sosal1/1234/
 Content-Type: application/json

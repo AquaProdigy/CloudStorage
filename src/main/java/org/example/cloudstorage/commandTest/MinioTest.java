@@ -37,10 +37,17 @@ public class MinioTest implements CommandLineRunner {
 //            System.out.println(item.lastModified() + "\t" + item.size() + "\t" + item.objectName());
 //        }
 
-//        minioClient.putObject(PutObjectArgs.builder()
-//                        .bucket("user-files")
-//                .object("sex/")
-//                        .stream(new ByteArrayInputStream(new byte[]{}), 0, -1)
-//                .build());
+        Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder()
+                        .bucket("user-files")
+                        .prefix("user-19-files/")
+                        .recursive(true)
+                .build());
+
+        for (Result<Item> result : results) {
+            Item item = result.get();
+            System.out.println(item.objectName());
+        }
+
+
     }
 }

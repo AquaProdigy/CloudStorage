@@ -64,9 +64,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", ex.getMessage()));
     }
 
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleResourceAlreadyExistsException(ResourceAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", ex.getMessage()));
+    }
+
+
     @ExceptionHandler({FileStorageException.class, Exception.class})
     public ResponseEntity<Map<String, String>> handleUnexpectedException(Exception ex) {
         log.error(ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", ApiErrors.UNEXPECTED_EXCEPTION.getMessage()));
     }
+
+
 }
