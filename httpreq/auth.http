@@ -29,7 +29,7 @@ Content-Type: application/json
 
 
 ### GET resource?path=
-GET {{host}}/resource?path=sosal/1
+GET {{host}}/resource?path=sosal1/
 Content-Type: application/json
 
 
@@ -44,7 +44,7 @@ Content-Type: application/json
 
 
 ### GET directory?path=
-GET {{host}}/directory?path=xui.txtasd/
+GET {{host}}/directory?path=sosal1/
 Content-Type: application/json
 
 ### GET /resource/download
@@ -59,3 +59,26 @@ Content-Type: application/json
 ### GET /resource/move
 GET {{host}}/resource/move?from=1234/&to=sosal1/1234/
 Content-Type: application/json
+
+
+
+###
+# curl --request POST
+#  --url 'http://localhost:8080/resource?path=sosal1%2F'
+#  --header 'Content-Type: multipart/form-data'
+#  --header 'User-Agent: insomnia/12.3.0'
+#  --cookie JSESSIONID=6DE29115FE4C5C7254261F3778388BBA
+#  --form files=@/Users/daniil/Desktop/sosal123/tuda.png
+POST http://localhost:8080/resource?path=sosal1%2F
+User-Agent: insomnia/12.3.0
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="files"; filename="sosal123/tuda.png"
+
+#< /Users/daniil/Desktop/sosal123/tuda.png
+files=@/Users/daniil/Desktop/sosal123/tuda.png
+--WebAppBoundary--
+
+###
+

@@ -5,6 +5,7 @@ public enum ApiErrors {
     RESOURCE_NOT_FOUND("Resource not found: %s"),
     RESOURCE_ALREADY_EXISTS("Resource already exists: %s"),
     INVALID_PATH("Invalid path: %s"),
+    QUERY_IS_BLANK("Query is blank"),
     ;
 
     private final String message;

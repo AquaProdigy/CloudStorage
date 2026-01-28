@@ -2,6 +2,7 @@ package org.example.cloudstorage.service;
 
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.cloudstorage.api.ApiErrors;
 import org.example.cloudstorage.model.dto.ResourceDTO;
 import org.example.cloudstorage.model.entity.User;
@@ -17,18 +18,21 @@ import org.springframework.core.io.Resource;
 import org.springframework.security.core.parameters.P;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class ResourceService {
     private final ResourceRepository resourceRepository;
     private static final int BUFFER_SIZE = 1024;
@@ -40,7 +44,7 @@ public class ResourceService {
         return ResourceDTO
                 .builder()
                 .path(PathUtil.getParentPath(PathUtil.removeRootPath(fullUserPath, userId)))
-                .name(PathUtil.getFileName(fullUserPath))
+                .name(isDirectory ? PathUtil.getFileName(fullUserPath) + "/" : PathUtil.getFileName(fullUserPath))
                 .size(isDirectory ? null : resourceRepository.checkObjectSize(fullUserPath))
                 .type(isDirectory ? TypeResource.DIRECTORY : TypeResource.FILE)
                 .build();
@@ -48,9 +52,9 @@ public class ResourceService {
 
     public ResourceDTO getInfoResource(Long userId, String path) {
         String fullUserPath = PathUtil.buildUserFullPath(userId, path);
+        log.info("Getting resource by path {}", fullUserPath);
 
         resourceRepository.assertExists(fullUserPath);
-
         return toResourceDTO(fullUserPath, userId);
     }
 
@@ -58,7 +62,6 @@ public class ResourceService {
         String fullUserPath = PathUtil.buildUserFullPath(userId, path);
 
         resourceRepository.assertExists(fullUserPath);
-
         if (PathUtil.isDirectory(fullUserPath)) {
             resourceRepository.deleteDirectory(fullUserPath);
         } else {
@@ -69,6 +72,7 @@ public class ResourceService {
 
     public void createRootDirectory(Long userId) {
         String rootUserPath = PathUtil.buildRootPath(userId);
+        log.info("Creating root directory {}", rootUserPath);
         resourceRepository.assertNotExists(rootUserPath);
 
         resourceRepository.createDirectory(rootUserPath);
@@ -76,7 +80,7 @@ public class ResourceService {
 
     public ResourceDTO createDirectory(Long userId, String path) {
         String fullUserPath = PathUtil.buildUserFullPath(userId, path);
-
+        log.info("Creating directory {}", fullUserPath);
         if (!PathUtil.isDirectory(fullUserPath)) {
             throw new InvalidPathResourceException("Invalid path");
         }
@@ -86,13 +90,14 @@ public class ResourceService {
 
         resourceRepository.createDirectory(fullUserPath);
 
+
         return toResourceDTO(fullUserPath, userId);
     }
 
 
     public List<ResourceDTO> listDirectories(Long userId, String path) {
         String fullUserPath = PathUtil.buildUserFullPath(userId, path);
-
+        log.info("Listing directory {}", fullUserPath);
         boolean isDirectory = PathUtil.isDirectory(fullUserPath);
         if (!isDirectory) {
             throw new InvalidParameterException("Not valid directory: %s".formatted(path));
@@ -111,6 +116,7 @@ public class ResourceService {
     }
 
     private StreamingResponseBody downloadFile(String path) {
+        log.info("Downloading file {}", path);
         return outputStream -> {
             try (InputStream is = resourceRepository.getObject(path)) {
                 is.transferTo(outputStream);
@@ -120,7 +126,7 @@ public class ResourceService {
 
     private StreamingResponseBody downloadDirectory(String path) {
         List<String> allObjects = resourceRepository.getFilesFromDirectory(path, true);
-
+        log.info("Downloading directory {}", path);
         return outputStream -> {
           try (ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)) {
               for (String file : allObjects) {
@@ -156,6 +162,7 @@ public class ResourceService {
     }
 
     private ResourceDTO moveOrRenameFile(String from, String to, Long userId) {
+        log.info("Moving file from {} to {}", from, to);
         resourceRepository.copyObject(from, to);
         resourceRepository.deleteFile(from);
         return toResourceDTO(to, userId);
@@ -191,27 +198,46 @@ public class ResourceService {
         }
 
         return moveOrRenameFile(fullUserFromPath, fullUserToPath, userId);
+    }
 
-//        if (PathUtil.isRenameAction(fullUserFromPath, fullUserToPath) ) {
-//            resourceRepository.assertNotExists(fullUserToPath);
-//
-//            if (isDirectoryFromPath) {
-//                createDirectory(userId, fullUserToPath);
-//                return moveResource(fullUserFromPath, fullUserToPath, userId);
-//            }
-//            return moveOrRenameFile(fullUserFromPath, fullUserToPath, userId);
-//        }
-//
-//        if (isDirectoryFromPath) {
-//            resourceRepository.assertNotExists(fullUserToPath);
-//            createDirectory(userId, fullUserToPath);
-//            return moveResource(fullUserFromPath, fullUserToPath, userId);
-//        }
-////
-//        resourceRepository.assertNotExists(fullUserToPath);
-//        return moveOrRenameFile(fullUserFromPath, fullUserToPath, userId);
+    public List<ResourceDTO> uploadResources(Long userId, String path, MultipartFile[] files) {
+        String fullUserPath = PathUtil.buildUserFullPath(userId, path);
+        log.info("Uploading file: {}", fullUserPath);
+        resourceRepository.assertExists(fullUserPath);
 
+        List<MultipartFile> multipartFiles = Arrays.asList(files);
+        List<ResourceDTO> resourceDTOS = new ArrayList<>();
 
-        // from=123/sosal/tuda.png  to=123/tuda.png
+        for (MultipartFile file : multipartFiles) {
+            String fileNameOriginal = file.getOriginalFilename();
+            resourceRepository.assertNotExists(fullUserPath + fileNameOriginal);
+
+            if (fileNameOriginal.contains("/")) {
+                String[] dirsPath = fileNameOriginal.substring(0, fileNameOriginal.lastIndexOf("/")).split("/");
+
+                for (String dirPath : dirsPath) {
+                    if (!resourceRepository.isFilePathExists(fullUserPath + dirPath + "/")) {
+                        createDirectory(userId, fullUserPath + dirPath + "/");
+                    }
+                }
+            }
+            resourceRepository.putResource(file, fullUserPath + fileNameOriginal);
+            resourceDTOS.add(toResourceDTO(fullUserPath + fileNameOriginal, userId));
+        }
+
+        return resourceDTOS;
+    }
+
+    public List<ResourceDTO> searchResources(Long userId, String query) {
+        if (query.isBlank()) {
+            throw new IllegalArgumentException(ApiErrors.QUERY_IS_BLANK.getMessage());
+        }
+        String rootPath = PathUtil.buildRootPath(userId);
+        List<String> files = resourceRepository.getFilesFromDirectory(rootPath, true);
+
+        return files.stream()
+                .filter(str -> PathUtil.getFileName(str).toLowerCase().contains(query.toLowerCase()))
+                .map(str -> toResourceDTO(str, userId))
+                .toList();
     }
 }

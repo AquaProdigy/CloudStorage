@@ -14,15 +14,9 @@ import java.util.List;
 @UtilityClass
 public class PathUtil {
     private final String ROOT_PATH = "user-%d-files/";
-//    private static final String INVALID_CHARS = "\\#?&<>\"^%[]{}|";
-
 
     public static boolean isContainsRootPath(String path, Long userId) {
         return path.contains(ROOT_PATH.formatted(userId));
-    }
-
-    public static boolean isRenameAction(String from, String to) {
-        return PathUtil.getParentPath(from).equals(PathUtil.getParentPath(to));
     }
 
     public static String buildRootPath(Long userId) {
@@ -35,8 +29,9 @@ public class PathUtil {
 
     public static String buildUserFullPath(Long userId, String path) {
         String normalized = validateAndNormalizePath(path);
-        if (isContainsRootPath(normalized, userId)) return normalized;
-        return buildRootPath(userId) + normalized;
+        return isContainsRootPath(normalized, userId)
+                ? normalized.replace("//", "/")
+                : (buildRootPath(userId) + normalized).replace("//", "/");
     }
 
     public static boolean isDirectory(String path) {
@@ -52,7 +47,7 @@ public class PathUtil {
             if (pathObj.getParent() == null) {
                 return "/";
             }
-            return pathObj.getParent() + "/";
+            return pathObj.getParent().toString().replace("\\", "/") + "/";
         } catch (InvalidPathException e) {
             throw new InvalidPathResourceException(ApiErrors.INVALID_PATH.getMessage().formatted(path));
         }
@@ -71,7 +66,7 @@ public class PathUtil {
 
     private static String validateAndNormalizePath(String path) {
         String pathTrim = path.trim();
-        if (pathTrim.isEmpty() || pathTrim.contains("\\") || pathTrim.contains("//")
+        if (pathTrim.contains("\\") || pathTrim.contains("//")
             || pathTrim.contains("..")
         ) {
             throw new InvalidPathResourceException(ApiErrors.INVALID_PATH.getMessage().formatted(path));

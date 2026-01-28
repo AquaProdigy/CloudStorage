@@ -15,8 +15,10 @@ import org.example.cloudstorage.util.PathUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,15 +46,21 @@ public class ResourceRepositoryImpl implements ResourceRepository {
 
     @Override
     public void assertExists(String path) throws ResourceNotFoundException {
+        String fileName = PathUtil.getFileName(path);
         if (!isFilePathExists(path)) {
-            throw new ResourceNotFoundException(ApiErrors.RESOURCE_NOT_FOUND.getMessage().formatted(path));
+            throw new ResourceNotFoundException(ApiErrors.RESOURCE_NOT_FOUND.getMessage().formatted(fileName));
         }
     }
 
     @Override
     public void assertNotExists(String path) throws ResourceAlreadyExistsException {
+        String fileName = PathUtil.getFileName(path);
         if (isFilePathExists(path)) {
-            throw new ResourceAlreadyExistsException(ApiErrors.RESOURCE_ALREADY_EXISTS.getMessage().formatted(path));
+            throw new ResourceAlreadyExistsException(
+                    ApiErrors.RESOURCE_ALREADY_EXISTS
+                            .getMessage().
+                            formatted(fileName)
+            );
         }
     }
 
@@ -183,6 +191,19 @@ public class ResourceRepositoryImpl implements ResourceRepository {
         }
     }
 
+
+    public void putResource(MultipartFile file, String path) throws FileStorageException {
+        try (InputStream inputStream = file.getInputStream()) {
+            minioClient.putObject(PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(path)
+                            .stream(inputStream, file.getSize(), -1)
+                            .contentType(file.getContentType())
+                    .build());
+        } catch (Exception ex) {
+            throw new FileStorageException(ApiErrors.UNEXPECTED_EXCEPTION.getMessage(), ex);
+        }
+    }
 
 
 }
