@@ -1,4 +1,4 @@
-package org.example.cloudstorage.service;
+package org.example.cloudstorage.unit.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -6,6 +6,7 @@ import org.example.cloudstorage.model.dto.UserDTO;
 import org.example.cloudstorage.model.entity.User;
 import org.example.cloudstorage.model.request.AuthUserRequest;
 import org.example.cloudstorage.repository.Impl.UserRepository;
+import org.example.cloudstorage.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

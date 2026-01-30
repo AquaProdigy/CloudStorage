@@ -81,7 +81,7 @@ public class ResourceService {
         String fullUserPath = PathUtil.buildUserFullPath(userId, path);
         log.info("Creating directory {}", fullUserPath);
         if (!PathUtil.isDirectory(fullUserPath)) {
-            throw new InvalidPathResourceException("Invalid path");
+            throw new InvalidPathResourceException(ApiErrors.INVALID_PATH.getMessage().formatted(path));
         }
 
         resourceRepository.assertExists(PathUtil.getParentPath(fullUserPath));
@@ -188,6 +188,10 @@ public class ResourceService {
 
         resourceRepository.assertExists(fullUserFromPath);
         resourceRepository.assertNotExists(fullUserToPath);
+
+        if (fullUserToPath.startsWith(fullUserFromPath)) {
+            throw new InvalidPathResourceException(ApiErrors.INVALID_PATH.getMessage());
+        }
 
         boolean isDirectoryFromPath = PathUtil.isDirectory(fullUserFromPath);
 

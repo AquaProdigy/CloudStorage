@@ -2,6 +2,7 @@ package org.example.cloudstorage.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.example.cloudstorage.api.ApiErrors;
 import org.example.cloudstorage.model.entity.User;
 import org.example.cloudstorage.model.dto.UserDTO;
 import org.example.cloudstorage.model.exception.UsernameExistsException;
@@ -30,10 +31,10 @@ public class UserService implements UserDetailsService {
     ) {
         User user = userRepository
                 .findByUsername(authUserRequest.getUsername()).orElseThrow(() ->
-                        new BadCredentialsException("Username not correct"));
+                        new BadCredentialsException(ApiErrors.BAD_CREDENTIALS.getMessage()));
 
         if (!passwordEncoder.matches(authUserRequest.getPassword(), user.getPassword())) {
-            throw new BadCredentialsException("Password not correct");
+            throw new BadCredentialsException(ApiErrors.BAD_CREDENTIALS.getMessage());
         }
 
         return new UserDTO(authUserRequest.getUsername());
@@ -46,7 +47,7 @@ public class UserService implements UserDetailsService {
             AuthUserRequest user
     ) {
         if (userRepository.existsByUsername(user.getUsername())) {
-            throw new UsernameExistsException("Username already exists: %s".formatted(user.getUsername()));
+            throw new UsernameExistsException(ApiErrors.USERNAME_ALREADY_EXISTS.getMessage());
         }
 
         User userEntity = new User();

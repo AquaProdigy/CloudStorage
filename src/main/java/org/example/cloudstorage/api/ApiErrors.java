@@ -8,6 +8,8 @@ public enum ApiErrors {
     QUERY_IS_BLANK("Query is blank"),
     USER_NOT_AUTHENTICATED("User not authenticated"),
     USER_ALREADY_AUTHENTICATED("User is already authenticated"),
+    USERNAME_ALREADY_EXISTS("Username already exists"),
+    BAD_CREDENTIALS("Bad credentials"),
     ;
 
     private final String message;
