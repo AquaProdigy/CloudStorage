@@ -1,6 +1,14 @@
 package org.example.cloudstorage.controller;
 
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.example.cloudstorage.model.dto.ResourceDTO;
@@ -26,35 +34,51 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Resource")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("${api}")
 public class ResourceController {
+    private final ResourceService resourceService;
+
     @PostMapping(
-            value = "/resource"
+            value = "${resource}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<List<ResourceDTO>> uploadResource(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(name = "path") String path,
+            @Parameter(
+                    description = "Files to upload",
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(type = "file", format = "binary")
+                    )
+            )
             @RequestParam(name = "object") MultipartFile[] files
     ) {
         List<ResourceDTO> resourceDTOS = resourceService.uploadResources(userDetails.getUser().getId(), path, files);
         return ResponseEntity.status(HttpStatus.CREATED).body(resourceDTOS);
     }
 
-    private final ResourceService resourceService;
-
-
-    @GetMapping("/resource")
+    @GetMapping("${resource}")
     public ResponseEntity<ResourceDTO> getResource(
             @AuthenticationPrincipal UserDetails userDetails,
+
+            @Parameter(
+                    description = "Path to file or directory",
+                    schema = @Schema(type = "string"),
+                    required = true
+            )
             @RequestParam(name = "path") String path
     ) {
         ResourceDTO resourceDTO = resourceService.getInfoResource(userDetails.getUser().getId(), path);
         return ResponseEntity.ok(resourceDTO);
     }
 
-    @DeleteMapping("/resource")
+
+    @DeleteMapping("${resource}")
     public ResponseEntity<Void> deleteResource(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(name = "path") String path
@@ -63,26 +87,8 @@ public class ResourceController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @PostMapping("/directory")
-    public ResponseEntity<ResourceDTO> createDirectory(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(name = "path") String path
-    ) {
-        ResourceDTO resourceDTO = resourceService.createDirectory(userDetails.getUser().getId(), path);
-        return ResponseEntity.status(HttpStatus.CREATED).body(resourceDTO);
-    }
 
-    @GetMapping("/directory")
-    public ResponseEntity<List<ResourceDTO>> getResources(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(name = "path") String path
-    ) {
-
-        List<ResourceDTO> resourceDTOS = resourceService.listDirectories(userDetails.getUser().getId(), path);
-        return ResponseEntity.ok(resourceDTOS);
-    }
-
-    @GetMapping("/resource/download")
+    @GetMapping("${resource.download}")
     public ResponseEntity<StreamingResponseBody> download(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(name = "path") String path
@@ -100,7 +106,7 @@ public class ResourceController {
     }
 
 
-    @GetMapping("/resource/move")
+    @GetMapping("${resource.move}")
     public ResponseEntity<ResourceDTO> moveOrRenameResource(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(name = "from") String from,
@@ -115,8 +121,7 @@ public class ResourceController {
         return ResponseEntity.ok(resourceDTO);
     }
 
-
-    @GetMapping("/resource/search")
+    @GetMapping("${resource.search}")
     public ResponseEntity<List<ResourceDTO>> search(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(name = "query") String query

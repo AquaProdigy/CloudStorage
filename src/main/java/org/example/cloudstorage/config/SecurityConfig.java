@@ -1,7 +1,9 @@
 package org.example.cloudstorage.config;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.cloudstorage.api.ApiErrors;
 import org.example.cloudstorage.model.response.ErrorResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,27 +26,39 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http
-//                .csrf(CsrfConfigurer::disable)
-//                .formLogin(FormLoginConfigurer::disable)
-//                .authorizeHttpRequests(auth ->
-//                        auth
-//                                .requestMatchers("/api/auth/sign-up", "/api/auth/sign-in").permitAll()
-//                                .anyRequest().authenticated())
-//                                .exceptionHandling(exception -> exception
-//                                        .authenticationEntryPoint((request, response, authException) -> {
-//                                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//                                            response.setContentType("application/json");
-//                                            response.setCharacterEncoding("UTF-8");
-//                                            response.getWriter().write(new ErrorResponse("User unauthorized").toString());
-//                                        })
-//                                );
-//        return http.build();
-        http.csrf(CsrfConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest()
-                        .permitAll());
+        http
+                .csrf(CsrfConfigurer::disable)
+                .formLogin(FormLoginConfigurer::disable)
+                .authorizeHttpRequests(auth ->
+                        auth
+                                .requestMatchers(
+                                        "/api/auth/sign-up",
+                                        "/api/auth/sign-in",
+                                        "/swagger-ui/**",
+                                        "/api-docs/**",
+                                        "/",
+                                        "/login",
+                                        "/registration",
+                                        "/index.html",
+                                        "/config.js",
+                                        "/favicon.png",
+                                        "/assets/**",
+                                        "/files",
+                                        "/files/**"
+                                ).permitAll()
+                                .anyRequest().authenticated())
+                                .exceptionHandling(exception -> exception
+                                        .authenticationEntryPoint((request, response, authException) -> {
+                                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                            response.setContentType("application/json");
+                                            response.setCharacterEncoding("UTF-8");
+
+                                            ObjectMapper objectMapper = new ObjectMapper();
+                                            objectMapper.writeValue(response.getWriter(), new ErrorResponse(ApiErrors.USER_NOT_AUTHENTICATED.getMessage()));
+                                        })
+                                );
         return http.build();
+
     }
 
 

@@ -44,7 +44,7 @@ public class PathUtil {
         try {
             Path pathObj = Path.of(normalized).normalize();
 
-            if (pathObj.getParent() == null) {
+            if (pathObj.getParent() == null || pathObj.getParent().toString().isEmpty()) {
                 return "/";
             }
             return pathObj.getParent().toString().replace("\\", "/") + "/";

@@ -35,16 +35,15 @@ import java.util.zip.ZipOutputStream;
 @Slf4j
 public class ResourceService {
     private final ResourceRepository resourceRepository;
-    private static final int BUFFER_SIZE = 1024;
-
 
     private ResourceDTO toResourceDTO(String fullUserPath, Long userId) {
         boolean isDirectory = PathUtil.isDirectory(fullUserPath);
+        String clearUserPath = PathUtil.removeRootPath(fullUserPath, userId);
 
         return ResourceDTO
                 .builder()
-                .path(PathUtil.getParentPath(PathUtil.removeRootPath(fullUserPath, userId)))
-                .name(isDirectory ? PathUtil.getFileName(fullUserPath) + "/" : PathUtil.getFileName(fullUserPath))
+                .path(PathUtil.getParentPath(clearUserPath))
+                .name(isDirectory ? PathUtil.getFileName(clearUserPath) + "/" : PathUtil.getFileName(clearUserPath))
                 .size(isDirectory ? null : resourceRepository.checkObjectSize(fullUserPath))
                 .type(isDirectory ? TypeResource.DIRECTORY : TypeResource.FILE)
                 .build();
@@ -132,7 +131,7 @@ public class ResourceService {
               for (String file : allObjects) {
 
                   String zipEntryName = file.substring(path.length());
-
+                  System.out.println();
                   if (PathUtil.isDirectory(file)) {
                       zipOutputStream.putNextEntry(new ZipEntry(zipEntryName));
                       zipOutputStream.closeEntry();
@@ -215,9 +214,12 @@ public class ResourceService {
             if (fileNameOriginal.contains("/")) {
                 String[] dirsPath = fileNameOriginal.substring(0, fileNameOriginal.lastIndexOf("/")).split("/");
 
-                for (String dirPath : dirsPath) {
-                    if (!resourceRepository.isFilePathExists(fullUserPath + dirPath + "/")) {
-                        createDirectory(userId, fullUserPath + dirPath + "/");
+                StringBuilder currentPath = new StringBuilder(fullUserPath);
+
+                for (String dir : dirsPath) {
+                    currentPath.append(dir).append("/");
+                    if (!resourceRepository.isFilePathExists(currentPath.toString())) {
+                        createDirectory(userId, currentPath.toString());
                     }
                 }
             }

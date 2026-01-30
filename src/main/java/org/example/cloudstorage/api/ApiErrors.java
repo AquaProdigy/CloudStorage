@@ -6,6 +6,8 @@ public enum ApiErrors {
     RESOURCE_ALREADY_EXISTS("Resource already exists: %s"),
     INVALID_PATH("Invalid path: %s"),
     QUERY_IS_BLANK("Query is blank"),
+    USER_NOT_AUTHENTICATED("User not authenticated"),
+    USER_ALREADY_AUTHENTICATED("User is already authenticated"),
     ;
 
     private final String message;
