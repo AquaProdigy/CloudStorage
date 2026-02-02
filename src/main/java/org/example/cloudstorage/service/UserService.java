@@ -37,6 +37,7 @@ public class UserService implements UserDetailsService {
             throw new BadCredentialsException(ApiErrors.BAD_CREDENTIALS.getMessage());
         }
 
+
         return new UserDTO(authUserRequest.getUsername());
 
 

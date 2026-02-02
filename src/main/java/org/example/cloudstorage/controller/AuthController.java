@@ -54,6 +54,7 @@ public class AuthController {
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
         securityContextRepository.saveContext(context, request, response);
+
     }
 
     @PostMapping("${auth.register}")

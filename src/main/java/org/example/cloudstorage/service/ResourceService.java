@@ -161,7 +161,6 @@ public class ResourceService {
     }
 
     private ResourceDTO moveOrRenameFile(String from, String to, Long userId) {
-        log.info("Moving file from {} to {}", from, to);
         resourceRepository.copyObject(from, to);
         resourceRepository.deleteFile(from);
         return toResourceDTO(to, userId);
@@ -172,7 +171,9 @@ public class ResourceService {
 
         for (String file : files) {
             if (PathUtil.isDirectory(file)) {
-                createDirectory(userId, to + PathUtil.getFileName(file) + "/");
+                if (!resourceRepository.isFilePathExists(to + PathUtil.getFileName(file) + "/")) {
+                    createDirectory(userId, to + PathUtil.getFileName(file) + "/");
+                }
                 continue;
             }
             resourceRepository.copyObject(file, file.replace(from, to));
@@ -189,7 +190,10 @@ public class ResourceService {
         resourceRepository.assertExists(fullUserFromPath);
         resourceRepository.assertNotExists(fullUserToPath);
 
+        log.info("Moving file from {} to {}", fullUserFromPath, fullUserToPath);
+
         if (fullUserToPath.startsWith(fullUserFromPath)) {
+            log.debug("Moving file from {} to {}", fullUserFromPath, fullUserToPath);
             throw new InvalidPathResourceException(ApiErrors.INVALID_PATH.getMessage());
         }
 

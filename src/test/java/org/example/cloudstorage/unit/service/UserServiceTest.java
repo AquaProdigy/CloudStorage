@@ -2,10 +2,13 @@ package org.example.cloudstorage.unit.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.cloudstorage.api.ApiErrors;
 import org.example.cloudstorage.model.dto.UserDTO;
 import org.example.cloudstorage.model.entity.User;
+import org.example.cloudstorage.model.exception.UsernameExistsException;
 import org.example.cloudstorage.model.request.AuthUserRequest;
 import org.example.cloudstorage.repository.Impl.UserRepository;
+import org.example.cloudstorage.service.ResourceService;
 import org.example.cloudstorage.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,16 +42,7 @@ class UserServiceTest {
     PasswordEncoder passwordEncoder;
 
     @Mock
-    AuthenticationManager authenticationManager;
-
-    @Mock
-    SecurityContextRepository securityContextRepository;
-
-    @Mock
-    HttpServletRequest httpServletRequest;
-
-    @Mock
-    HttpServletResponse httpServletResponse;
+    ResourceService resourceService;
 
     @InjectMocks
     UserService userService;
@@ -71,65 +65,52 @@ class UserServiceTest {
 
 
     @Test
-    @DisplayName("Успешаная авторизация - возвращает UserDTO")
+    @DisplayName("Success login - return UserDTO")
     void login_ValidCredentials_Success() {
 
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
-        when(authenticationManager.authenticate(any(Authentication.class))).thenReturn(mock(Authentication.class));
-
-        UserDTO response = userService.login(request);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getUsername()).isEqualTo("username");
-
-        verify(userRepository, times(1)).findByUsername(anyString());
-        verify(authenticationManager, times(1)).authenticate(any(Authentication.class));
-        verify(passwordEncoder, times(1)).matches(anyString(), anyString());
-
-
-        verify(securityContextRepository).saveContext(
-                any(),
-                eq(httpServletRequest),
-                eq(httpServletResponse)
-        );
-
-    }
-
-    @Test
-    @DisplayName("Пользователь не найден, Ошибка Bad Credentional")
-    void login_UserNotFound_BadCredentials() {
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
-
-
-        assertThatThrownBy(() -> userService.login(request))
-                .isInstanceOf(BadCredentialsException.class)
-                .hasMessageContaining("Username not correct");
-    }
-
-    @Test
-    @DisplayName("Успешная выдача токен(сессии) - возвращает void")
-    void login_AccessSessionForUser() {
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
-
-        Authentication authentication = mock(Authentication.class);
-
-        when(authenticationManager.authenticate(any(Authentication.class))).thenReturn(authentication);
-
 
         UserDTO response = userService.login(request);
 
         assertThat(response).isNotNull();
         assertThat(response.getUsername()).isEqualTo("john");
 
-        verify(securityContextRepository, times(1)).saveContext(
-                any(SecurityContext.class),
-                eq(httpServletRequest),
-                eq(httpServletResponse)
-        );
+        verify(userRepository, times(1)).findByUsername(anyString());
+        verify(passwordEncoder, times(1)).matches(anyString(), anyString());
 
-        verify(authenticationManager, times(1)).authenticate(any(Authentication.class));
 
     }
+
+    @Test
+    @DisplayName("User not found - return Bad Credential")
+    void login_UserNotFound_BadCredentials() {
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+
+
+        assertThatThrownBy(() -> userService.login(request))
+                .isInstanceOf(BadCredentialsException.class)
+                .hasMessageContaining(ApiErrors.BAD_CREDENTIALS.getMessage());
+    }
+
+    @Test
+    @DisplayName("Success registration - return UserDto")
+    void register_ValidCredentials_Success() {
+        when(userRepository.existsByUsername(anyString())).thenReturn(false);
+        UserDTO response = userService.register(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getUsername()).isEqualTo("john");
+    }
+
+    @Test
+    @DisplayName("Register failed, username already exists - return UsernameAlreadyExistsException")
+    void register_UserAlreadyExists_UsernameAlreadyExists() {
+        when(userRepository.existsByUsername(anyString())).thenReturn(true);
+
+        assertThatThrownBy(() -> userService.register(request))
+                .isInstanceOf(UsernameExistsException.class)
+                .hasMessageContaining(ApiErrors.USERNAME_ALREADY_EXISTS.getMessage());
+    }
+
 }
