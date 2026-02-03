@@ -2,38 +2,44 @@ services:
   postgres:
     image: postgres:15.5
     container_name: postgres
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: cloud
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
   minio:
     image: minio/minio:latest
     container_name: minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+    env_file:
+      - .env
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
     command: server /data --console-address :9001
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
     volumes:
-      - minio_data:/var/lib/minio/data
+      - minio_data:/data
+
   redis:
     image: redis:latest
     container_name: redis
+    env_file:
+      - .env
+    command: sh -c "redis-server --requirepass $${REDIS_PASSWORD}"
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
-      - redis_data:/var/lib/redis/data
-
+      - redis_data:/data
 
 volumes:
   postgres_data:
   redis_data:
-    driver: local
   minio_data:
-    driver: local
